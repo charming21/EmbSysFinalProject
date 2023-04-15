@@ -26,36 +26,10 @@ void SystemClock_Config(void);
 void usart_char_transmit(char c);
 void usart_str_transmit(char *c);
 void USART3_4_IRQHandler(void);
-
-void RoverMovement_Setup(void);
-void MotorDir_Clockwise(uint32_t, uint32_t, char);
-void MotorDir_Counter_Clockwise(uint32_t, uint32_t, char);
-void RoverMovement_Forward(void);
-void RoverMovement_Reverse(void);
-void RoverMovement_Left(void);
-void RoverMovement_Right(void);
-void RoverMovement_Stop(void);
-void Test_Forward(void);
-void Test_Reverse(void);
-void Test_Left(void);
-void Test_Right(void);
-void Test_Stop(void);
-
 volatile char _RX_dir, _RX_flag, _RX_idle = 0;
 volatile char start = 1;
 volatile char curr_dir = 0;
 char *err = "error\n";
-//***********SETUP PCB variable names ******************//
-const uint32_t PCB1_IN1 = GPIO_MODER_MODER8_1;// Timer 3 channel 3 - PC8
-const uint32_t PCB1_IN2 = GPIO_MODER_MODER9_1;// Timer 3 channel 4 - PC9
-const uint32_t PCB2_IN1 = GPIO_MODER_MODER0_1;// Timer 2 channel 1 - PA0
-const uint32_t PCB2_IN2 = GPIO_MODER_MODER1_1;// Timer 2 channel 2 - PA1
-const uint32_t PCB3_IN1 = GPIO_MODER_MODER4_1;// Timer 3 channel 1 - PB4
-const uint32_t PCB3_IN2 = GPIO_MODER_MODER5_1;// Timer 3 channel 2 - PB5
-const uint32_t PCB4_IN1 = GPIO_MODER_MODER10_1;// Timer 2 channel 3 - PB10
-const uint32_t PCB4_IN2 = GPIO_MODER_MODER11_1;// Timer 2 channel 4 - PB11
-//update mask below TODO (possible remove completely)
-const uint32_t Mask_For_All_PCB_Address = PCB1_IN1 | PCB1_IN2 | PCB2_IN1 | PCB2_IN2 | PCB3_IN1 | PCB3_IN2 | PCB4_IN1 | PCB4_IN2;
 
 
 /**
@@ -72,19 +46,31 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-	RoverMovement_Setup();
+
   /* USER CODE BEGIN SysInit */
 	__HAL_RCC_USART3_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE(); 
 	
 	//USART PINS: GPIOB 10 & 11
+	/*
 	GPIO_InitTypeDef initStr = {GPIO_PIN_10 | GPIO_PIN_11,
 															GPIO_MODE_AF_PP,
 															GPIO_SPEED_FREQ_LOW,
 															GPIO_NOPULL};
 	HAL_GPIO_Init(GPIOB, &initStr);														
 	GPIOB->AFR[1] |= ((4 << 8) | (4 << 12));
+	*/
+	
+	//USART PINS: GPIOC 4 & 5
+	//PC4 = TX, PC5 = RX
+	GPIO_InitTypeDef initStr = {GPIO_PIN_4 | GPIO_PIN_5,
+                              GPIO_MODE_AF_PP,
+                              GPIO_SPEED_FREQ_LOW,
+                              GPIO_NOPULL};
+  HAL_GPIO_Init(GPIOC, &initStr);
+  GPIOC->AFR[0] |= ((1 << 16) | (1 << 20));
+
 															
 	GPIO_InitTypeDef initLEDs = {GPIO_PIN_8 | GPIO_PIN_9 |
 															 GPIO_PIN_6 | GPIO_PIN_7,
@@ -106,7 +92,7 @@ int main(void)
   while (1)
   {
 		if(start) {
-			usart_str_transmit("CMD?\n");
+			usart_str_transmit("CMD?\r");
 			start = 0;
 		}
    
@@ -121,7 +107,6 @@ void Stop(){
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
 	// all off 
-	RoverMovement_Stop();
 }
 void Right(){
 	//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8);
@@ -131,7 +116,6 @@ void Right(){
 	// front-right back
 	// back-left back
 	// back-right forward
-	RoverMovement_Right();
 }
 
 void Left(){
@@ -143,7 +127,6 @@ void Left(){
 	// front-right forward
 	// back-left forward
 	// back-right back
-	RoverMovement_Left();
 }
 
 void Forward(){
@@ -151,7 +134,7 @@ void Forward(){
 	curr_dir = 'w';
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
 	// all forward
-	RoverMovement_Forward();
+	
 	// front sensor on 
 	
 	// polling
@@ -169,7 +152,6 @@ void Back(){
 	curr_dir = 's';
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
 	// all backward
-	RoverMovement_Reverse();
 }
 
 
@@ -198,283 +180,36 @@ void USART3_4_IRQHandler(void) {
 		if(_RX_dir == curr_dir){
 			curr_dir = 'X';
 			Stop();
+			usart_str_transmit("STOPPED");
 		} 
 		else {
 			
 			if(_RX_dir == 'w') {
 				Stop();
 				Forward();
+				usart_str_transmit("MOVING FORWARD");
 			}
 			else if(_RX_dir == 'a') {
 				Stop();
 				Left();
+				usart_str_transmit("MOVING LEFT");
 			}
 			else if(_RX_dir == 'd') {
 				Stop();
 				Right();
+				usart_str_transmit("MOVING RIGHT");
 			}
 			else if(_RX_dir == 's') {
 				Stop();
 				Back();
+				usart_str_transmit("MOVING BACK");
 			}
 			
 		}
 		
-		usart_str_transmit("DIRECTION:\n");
+		usart_str_transmit("\n\r");
 		_RX_flag = 0;
 	}
-}
-
-void RoverMovement_Setup(\void){
-	//*********ENABLE PERIPHERAL *************//
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN; //enable A pins
-	//RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable B pins
-	//RCC->AHBENR |= RCC_AHBENR_GPIOCEN; //enable C pins
-	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; //enable TIM3
-	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; //enable TIM2
-	//*********END of ENABLE PERIPHERAL *************//
-
-	//**********SETUP B pins 0,1,4,5 ****************//
-	GPIOB->MODER |= GPIO_MODER_MODER4_1 | GPIO_MODER_MODER5_1 ;  // Set to Alternate function output mode (bits: 10)
-	GPIOB->MODER |= GPIO_MODER_MODER10_1 | GPIO_MODER_MODER11_1 ; //Set to Alternate function output mode (bits: 10)
-	GPIOB->AFR[0] |=  0x1 << 16 | 0x1 << 20; //PB4,5 alternate function AF1
-	GPIOB->AFR[1] |= 0x2<<8 | 0x2<<12 ;//PB10,11 alternate function AF2
-	//**********END of SETUP B pins 0,1,4,5 ****************//
-
-	//**********SETUP A pins 0-3 ***************************//
-	GPIOA->MODER |= GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1 | GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1 ; // Set to Alternate function output mode (bits: 10)
-	//GPIOB->OTYPER |= ; //should be in Output push-pull state
-	//GPIOB->OSPEEDR |= ; //kept at default speed
- 	//GPIOB->PUPDR |= ; // should be in No pull-up, pull-down state
-	GPIOA->AFR[0] |= 0x2 | 0x2<<4 | 0x2 << 8 | 0x2 << 12; //PA0,1,2,3 alternate function AF2
-
-	//**********END of SETUP A pins 0-3 ********************//
-
-	/******************SETUP PWM TIMER 3 (PB0,1,4,5 channel 1,2,3,4) ***********************/
-	
-	TIM3 -> PSC = (999); 														
-	TIM3 -> ARR = (10); //100*100 = 10,000 desired f = 800Hz		
-	
-	TIM3 -> CCMR1 |= (0b00 << 8);		// set channel 2 to output mode
-	TIM3 -> CCMR1 |= (0b00);	     // set channel 1 to output mode
-	TIM3 -> CCMR2 |= (0b00 << 8);		// set channel 4 to output mode
-	TIM3 -> CCMR2 |= (0b00);	     // set channel 3 to output mode 
-	TIM3 -> CCMR1 |= (6 << 4);   // set OC1M to PWM mode 1	
-  	TIM3 -> CCMR1 |= (6 << 12);   // set OC2M to PWM mode 1	
-	TIM3 -> CCMR2 |= (6 << 4);   // set OC3M to PWM mode 1	
-	TIM3 -> CCMR2 |= (6 << 12);   // set OC4M to PWM mode 1	
-	TIM3 -> CCMR1 |= (1 << 3) | (1 << 11); // enable channel 1 & 2 preload
-	TIM3 -> CCMR2 |= (1 << 3) | (1 << 11); // enable channel 3 & 4 preload
-	TIM3 -> CCER |= (1); // channel 1 output enable 
-	TIM3 -> CCER |= (1 << 4); // channel 2 output enable 
-	TIM3 -> CCER |= (1 << 8); // channel 3 output enable 
-	TIM3 -> CCER |= (1 << 12); // channel 4 output enable 
-	TIM3 -> CCR1 = (10); // Heavy Duty for channel 1
-	TIM3 -> CCR2 = (10); // Heavy Duty for Channel 2
-	TIM3 -> CCR3 = (10); // Heavy Duty for channel 3
-	TIM3 -> CCR4 = (10); // Heavy Duty for Channel 4
-	
-	TIM3 -> CR1 |= (1); // timer enable
-
-	/******************END OF SETUP PWM TIMER 3 (PB0,1,4,5 channel 1,2,3,4) ***********************/
-	
-	/******************SETUP PWM TIMER 2 (PA0,1,2,3 channel 1,2,3,4) ***********************/
-	
-	TIM2 -> PSC = (999); 														
-	TIM2 -> ARR = (10); //100*100 = 10,000 desired f = 800Hz		
-	
-	TIM2 -> CCMR1 |= (0b00 << 8);		// set channel 2 to output mode
-	TIM2 -> CCMR1 |= (0b00);	     // set channel 1 to output mode
-	TIM2 -> CCMR2 |= (0b00 << 8);		// set channel 4 to output mode
-	TIM2 -> CCMR2 |= (0b00);	     // set channel 3 to output mode 
-	TIM2 -> CCMR1 |= (6 << 4);   // set OC1M to PWM mode 1	
-  	TIM2 -> CCMR1 |= (6 << 12);   // set OC2M to PWM mode 1	
-	TIM2 -> CCMR2 |= (6 << 4);   // set OC3M to PWM mode 1	
-	TIM2 -> CCMR2 |= (6 << 12);   // set OC4M to PWM mode 1	
-	TIM2 -> CCMR1 |= (1 << 3) | (1 << 11); // enable channel 1 & 2 preload
-	TIM2 -> CCMR2 |= (1 << 3) | (1 << 11); // enable channel 3 & 4 preload
-	TIM2 -> CCER |= (1); // channel 1 output enable 
-	TIM2 -> CCER |= (1 << 4); // channel 2 output enable 
-	TIM2 -> CCER |= (1 << 8); // channel 3 output enable 
-	TIM2 -> CCER |= (1 << 12); // channel 4 output enable 
-	TIM2 -> CCR1 = (10); // Heavy Duty for channel 1
-	TIM2 -> CCR2 = (10); // Heavy Duty for Channel 2
-	TIM2 -> CCR3 = (10); // Heavy Duty for channel 3
-	TIM2 -> CCR4 = (10); // Heavy Duty for Channel 4
-	
-	TIM2 -> CR1 |= (1); // timer enable
-
-	/******************END OF SETUP PWM TIMER 2 (PA0,1,2,3 channel 1,2,3,4) ***********************/
-}
-
-void MotorDir_Clockwise(uint32_t pinIN1, uint32_t pinIN2, char portAorB){
-//	GPIOB->ODR |= pinIN2;
-//	GPIOB->ODR &= ~(pinIN1);
-	
-	/*//portB
-	if(pinIN1 == GPIO_MODER_MODER4_1 & portAorB == 'B') {
-		TIM3 -> CCR1 = (0);
-	}
-	if (pinIN2 == GPIO_MODER_MODER5_1 & portAorB == 'B'){
-		TIM3 -> CCR2 = (10);
-	}
-	if(pinIN1 == GPIO_MODER_MODER0_1 & portAorB == 'B') {
-		TIM3 -> CCR3 = (0);
-	}
-	if (pinIN2 == GPIO_MODER_MODER1_1 & portAorB == 'B'){
-		TIM3 -> CCR4 = (10);
-	}
-	//Port A
-	if(pinIN1 == GPIO_MODER_MODER0_1 & portAorB == 'A') {
-		TIM2 -> CCR1 = (0);
-	}
-	if (pinIN2 == GPIO_MODER_MODER1_1 & portAorB == 'A'){
-		TIM2 -> CCR2 = (10);
-	}
-	if(pinIN1 == GPIO_MODER_MODER2_1 & portAorB == 'A') {
-		TIM2 -> CCR3 = (0);
-	}
-	if (pinIN2 == GPIO_MODER_MODER3_1 & portAorB == 'A'){
-		TIM2 -> CCR4 = (10);
-	}*/
-
-	//portB
-	if(pinIN1 == PCB3_IN1 & portAorB == 'B') {
-		TIM3 -> CCR1 = (0);
-		//GPIOC->ODR |= GPIO_ODR_6; // turn in on red LED 
-	}
-	if (pinIN2 == PCB3_IN2 & portAorB == 'B'){
-		TIM3 -> CCR2 = (10);
-		//GPIOC->ODR |= GPIO_ODR_7; // turn in on blue LED 
-	}
-	if(pinIN1 == PCB1_IN1 & portAorB == 'B') {
-		TIM3 -> CCR3 = (0);
-		//GPIOC->ODR |= GPIO_ODR_8; // turn in on orange LED 
-	}
-	if (pinIN2 == PCB1_IN2 & portAorB == 'B'){
-		TIM3 -> CCR4 = (10);
-		//GPIOC->ODR |= GPIO_ODR_9; // turn in on green LED 
-	}
-	//Port A
-	if(pinIN1 == PCB2_IN1 & portAorB == 'A') {
-		TIM2 -> CCR1 = (0);
-	}
-	if (pinIN2 == PCB2_IN2 & portAorB == 'A'){
-		TIM2 -> CCR2 = (10);
-	}
-	//Port C
-	if(pinIN1 == PCB4_IN1 & portAorB == 'C') {
-		TIM2 -> CCR3 = (0);
-	}
-	if (pinIN2 == PCB4_IN2 & portAorB == 'C'){
-		TIM2 -> CCR4 = (10);
-	}
-}
-
-void MotorDir_Counter_Clockwise(uint32_t pinIN1, uint32_t pinIN2, char portAorB){
-//	GPIOB->ODR |= pinIN1;
-//	GPIOB->ODR &= ~(pinIN2);
-	
-	/*//port B
-	if(pinIN1 == GPIO_MODER_MODER4_1 & portAorB == 'B') {
-		TIM3 -> CCR1 = (10);
-	}
-	if (pinIN2 == GPIO_MODER_MODER5_1 & portAorB == 'B'){
-		TIM3 -> CCR2 = (0);
-	}
-	if(pinIN1 == GPIO_MODER_MODER0_1 & portAorB == 'B') {
-		TIM3 -> CCR3 = (10);
-	}
-	if (pinIN2 == GPIO_MODER_MODER1_1 & portAorB == 'B'){
-		TIM3 -> CCR4 = (0);
-	}
-	
-	//port A
-	if(pinIN1 == GPIO_MODER_MODER2_1 & portAorB == 'A') {
-		TIM2 -> CCR3 = (10);
-	}
-	if (pinIN2 == GPIO_MODER_MODER3_1 & portAorB == 'A'){
-		TIM2 -> CCR4 = (0);
-	}
-	if(pinIN1 == GPIO_MODER_MODER0_1 & portAorB == 'A') {
-		TIM2 -> CCR1 = (10);
-	}
-	if (pinIN2 == GPIO_MODER_MODER1_1 & portAorB == 'A'){
-		TIM2 -> CCR2 = (0);
-	}*/
-
-	//port B
-	if(pinIN1 == PCB3_IN1 & portAorB == 'B') {
-		TIM3 -> CCR1 = (10);
-	}
-	if (pinIN2 == PCB3_IN2 & portAorB == 'B'){
-		TIM3 -> CCR2 = (0);
-	}
-	if(pinIN1 == PCB1_IN1 & portAorB == 'B') {
-		TIM3 -> CCR3 = (10);
-	}
-	if (pinIN2 == PCB1_IN2 & portAorB == 'B'){
-		TIM3 -> CCR4 = (0);
-	}
-	
-	//port A
-	if(pinIN1 == PCB2_IN1 & portAorB == 'A') {
-		TIM2 -> CCR3 = (10);
-	}
-	if (pinIN2 == PCB2_IN2 & portAorB == 'A'){
-		TIM2 -> CCR4 = (0);
-	}
-	//port C
-	if(pinIN1 == PCB4_IN1 & portAorB == 'C') {
-		TIM2 -> CCR1 = (10);
-	}
-	if (pinIN2 == PCB4_IN2 & portAorB == 'C'){
-		TIM2 -> CCR2 = (0);
-	}
-}
-
-void RoverMovement_Forward(){
-	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
-	MotorDir_Counter_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
-	MotorDir_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
-}
-
-void RoverMovement_Reverse(){
-	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
-	MotorDir_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
-	MotorDir_Counter_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
-}
-
-void RoverMovement_Left(){
-	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
-	MotorDir_Counter_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
-	MotorDir_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
-}
-
-void RoverMovement_Right(){
-	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
-	MotorDir_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
-	MotorDir_Counter_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
-}
-	
-void RoverMovement_Stop(){
-	//GPIOB->ODR  |=  Mask_For_All_PCB_Address;
-	
-	TIM3 -> CCR1 = (10); // set heavy duty to 100%
-	TIM3 -> CCR2 = (10); // set heavy duty to 100%
-	TIM3 -> CCR3 = (10); // set heavy duty to 100%
-	TIM3 -> CCR4 = (10); // set heavy duty to 100%
-	
-	TIM2 -> CCR1 = (10); // set heavy duty to 100%
-	TIM2 -> CCR2 = (10); // set heavy duty to 100%
-	TIM2 -> CCR3 = (10); // set heavy duty to 100%
-	TIM2 -> CCR4 = (10); // set heavy duty to 100%
-	
-	HAL_Delay(1);
 }
 
 
