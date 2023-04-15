@@ -101,7 +101,7 @@ int main(void)
 
 void Stop(){
 	//usart_str_transmit("STOPPED\n");
-	curr_dir = 'X';
+	curr_dir = 'x';
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
@@ -178,7 +178,6 @@ void USART3_4_IRQHandler(void) {
 	else {
 		_RX_dir |= USART3->RDR;
 		if(_RX_dir == curr_dir){
-			curr_dir = 'X';
 			Stop();
 			usart_str_transmit("STOPPED");
 		} 
@@ -203,6 +202,10 @@ void USART3_4_IRQHandler(void) {
 				Stop();
 				Back();
 				usart_str_transmit("MOVING BACK");
+			}
+			else if(_RX_dir == 'x'){
+				Stop();
+				usart_str_transmit("STOPPED");
 			}
 			
 		}
