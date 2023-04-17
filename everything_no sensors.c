@@ -401,103 +401,79 @@ void Setup_Motor(){
 	
 }
 void MotorDir_Clockwise(uint32_t pinIN1, uint32_t pinIN2, char portAorB){
-//	GPIOB->ODR |= pinIN2;
-//	GPIOB->ODR &= ~(pinIN1);
-	//GPIOC->ODR |= GPIO_ODR_9; // turn in on orange LED 
-	
-	//portB
-	if(pinIN1 == PCB3_IN1 & portAorB == 'B') {
-		TIM3 -> CCR1 = (0);
-		//GPIOC->ODR |= GPIO_ODR_6; // turn in on red LED 
-	}
-	if (pinIN2 == PCB3_IN2 & portAorB == 'B'){
-		TIM3 -> CCR2 = (10);
-		//GPIOC->ODR |= GPIO_ODR_7; // turn in on blue LED 
-	}
-	if(pinIN1 == PCB1_IN1 & portAorB == 'B') {
-		TIM3 -> CCR3 = (0);
-		//GPIOC->ODR |= GPIO_ODR_8; // turn in on orange LED 
-	}
-	if (pinIN2 == PCB1_IN2 & portAorB == 'B'){
-		TIM3 -> CCR4 = (10);
-		//GPIOC->ODR |= GPIO_ODR_9; // turn in on green LED 
-	}
-	//Port A
-	if(pinIN1 == PCB2_IN1 & portAorB == 'A') {
+	if(portAorB == 'A')
+	{
 		TIM2 -> CCR1 = (0);
-	}
-	if (pinIN2 == PCB2_IN2 & portAorB == 'A'){
 		TIM2 -> CCR2 = (10);
 	}
-	//Port C
-	if(pinIN1 == PCB4_IN1 & portAorB == 'C') {
-		TIM2 -> CCR3 = (0);
+	else if(portAorB == 'B')
+	{
+		if(pinIN1 == PCB3_IN1 & pinIN2 == PCB3_IN2){
+			TIM3 -> CCR1 = (0);
+			TIM3 -> CCR2 = (10);
+		}
+		else if(pinIN1 == PCB4_IN1 & pinIN2 == PCB4_IN2){
+			TIM2 -> CCR3 = (0);
+			TIM2 -> CCR4 = (10);
+		}
 	}
-	if (pinIN2 == PCB4_IN2 & portAorB == 'C'){
-		TIM2 -> CCR4 = (10);
+	else if(portAorB == 'C')
+	{
+		TIM3 -> CCR3 = (0);
+		TIM3 -> CCR4 = (10);
 	}
 }
 
 void MotorDir_Counter_Clockwise(uint32_t pinIN1, uint32_t pinIN2, char portAorB){
-//	GPIOB->ODR |= pinIN1;
-//	GPIOB->ODR &= ~(pinIN2);
-	
-	//port B
-	if(pinIN1 == PCB3_IN1 & portAorB == 'B') {
-		TIM3 -> CCR1 = (10);
-	}
-	if (pinIN2 == PCB3_IN2 & portAorB == 'B'){
-		TIM3 -> CCR2 = (0);
-	}
-	if(pinIN1 == PCB1_IN1 & portAorB == 'B') {
-		TIM3 -> CCR3 = (10);
-	}
-	if (pinIN2 == PCB1_IN2 & portAorB == 'B'){
-		TIM3 -> CCR4 = (0);
-	}
-	
-	//port A
-	if(pinIN1 == PCB2_IN1 & portAorB == 'A') {
-		TIM2 -> CCR3 = (10);
-	}
-	if (pinIN2 == PCB2_IN2 & portAorB == 'A'){
-		TIM2 -> CCR4 = (0);
-	}
-	//port C
-	if(pinIN1 == PCB4_IN1 & portAorB == 'C') {
+	if(portAorB == 'A')
+	{
 		TIM2 -> CCR1 = (10);
-	}
-	if (pinIN2 == PCB4_IN2 & portAorB == 'C'){
 		TIM2 -> CCR2 = (0);
+	}
+	else if(portAorB == 'B')
+	{
+		if(pinIN1 == PCB3_IN1 & pinIN2 == PCB3_IN2){
+			TIM3 -> CCR1 = (10);
+			TIM3 -> CCR2 = (0);
+		}
+		else if(pinIN1 == PCB4_IN1 & pinIN2 == PCB4_IN2){
+			TIM2 -> CCR3 = (10);
+			TIM2 -> CCR4 = (0);
+		}
+	}
+	else if(portAorB == 'C')
+	{
+		TIM3 -> CCR3 = (10);
+		TIM3 -> CCR4 = (0);
 	}
 }
 
 void RoverMovement_Forward(){
-	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
+	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2, 'C');
 	MotorDir_Counter_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
 	MotorDir_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
+	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2, 'B');
 }
 
 void RoverMovement_Reverse(){
-	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
+	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2, 'C');
 	MotorDir_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
 	MotorDir_Counter_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
+	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2, 'B');
 }
 
 void RoverMovement_Left(){
-	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
+	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2, 'C');
 	MotorDir_Counter_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
 	MotorDir_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
+	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2, 'B');
 }
 
 void RoverMovement_Right(){
-	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2, 'B');
+	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2, 'C');
 	MotorDir_Clockwise(PCB2_IN1, PCB2_IN2, 'A');
 	MotorDir_Counter_Clockwise(PCB3_IN1, PCB3_IN2, 'B');
-	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2, 'C');
+	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2, 'B');
 }
 	
 void RoverMovement_Stop(){
