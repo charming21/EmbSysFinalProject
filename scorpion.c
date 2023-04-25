@@ -16,42 +16,29 @@
   *
   ******************************************************************************
   */
+ /**
+  * Updated April 25,2023
+  * For Embedded System Final 
+  * Our Rover Name is Scorpion
+  * Our Team members : Brittney Morales, Saoud Aldowaish, Zander Bagley
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
 
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
+/* Private function for USART ---------------------------------------------------------*/
 void setup_LEDs(void);
 void TransmitChar(char c);
 void TransmitString(char* string);
-void delay_microsecond(uint32_t us);
-void send_pulse(char pin, int trig, int echo);
 void USART3_4_IRQHandler(void);
 
-/* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
+/* Private function for Ultrasonic Sensors ---------------------------------------------------------*/
+void delay_microsecond(uint32_t us);
+void send_pulse(char pin, int trig, int echo);
+
+/* Private function For Motor Direction Logic -----------------------------------------------*/
 void MotorDir_Clockwise(uint32_t, uint32_t);
 void MotorDir_Counter_Clockwise(uint32_t, uint32_t);
 void RoverMovement_Forward();
@@ -59,64 +46,51 @@ void RoverMovement_Reverse();
 void RoverMovement_Left();
 void RoverMovement_Right();
 void RoverMovement_Stop();
-void Test_Forward();
-void Test_Reverse();
-void Test_Left();
-void Test_Right();
-void Test_Stop();
+void Test_Forward(); 	//Used for testing direction of motors
+void Test_Reverse(); 	//Used for testing direction of motors
+void Test_Left(); 		//Used for testing direction of motors
+void Test_Right();		//Used for testing direction of motors
+void Test_Stop(); 		//Used for testing direction of motors
+
+/* Private function for Driving Rover ---------------------------------------------------------*/
 void Forward();
-void Reverse();
 void Left();
 void Right();
 void Stop();
 void Back();
 
 
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
+/* Private Variables ---------------------------------------------------------*/
 //***********SETUP PCB variable names ******************//
-	const uint32_t PCB1_IN1 = GPIO_ODR_12;
-	const uint32_t PCB1_IN2 = GPIO_ODR_13;
-	const uint32_t PCB2_IN1 = GPIO_ODR_8;
-	const uint32_t PCB2_IN2 = GPIO_ODR_9;
-	const uint32_t PCB3_IN1 = GPIO_ODR_14;
-	const uint32_t PCB3_IN2 = GPIO_ODR_15;
-	const uint32_t PCB4_IN1 = GPIO_ODR_6;
-	const uint32_t PCB4_IN2 = GPIO_ODR_7;
-	
-	const uint32_t Standby = GPIO_ODR_2;
-	
-	const uint32_t Mask_For_All_PCB_Address = PCB1_IN1 | PCB1_IN2 | PCB2_IN1 | PCB2_IN2 | PCB3_IN1 | PCB3_IN2 | PCB4_IN1 | PCB4_IN2;
-	
-	volatile char _RX_flag = 0;
-	
-	volatile char _RX_dir = 'x';
-	volatile char curr_dir = 1;
-  int autonomous_mode = 0;
-	int auto_mode_front_left_sensor_object = 0;
-	int auto_mode_front_sensor_object = 0;
-	int auto_mode_front_right_sensor_object = 0;
-	int auto_mode_right_sensor_object = 0;
-	int auto_mode_left_sensor_object = 0;
-	int rover_was_moving_right = 0;
-	int rover_was_moving_left = 0;
-	int distance_counter = 0;
-	
-	
-/* USER CODE END 0 */
+const uint32_t PCB1_IN1 = GPIO_ODR_12;
+const uint32_t PCB1_IN2 = GPIO_ODR_13;
+const uint32_t PCB2_IN1 = GPIO_ODR_8;
+const uint32_t PCB2_IN2 = GPIO_ODR_9;
+const uint32_t PCB3_IN1 = GPIO_ODR_14;
+const uint32_t PCB3_IN2 = GPIO_ODR_15;
+const uint32_t PCB4_IN1 = GPIO_ODR_6;
+const uint32_t PCB4_IN2 = GPIO_ODR_7;
 
-/* USER CODE END PV */
+const uint32_t Standby = GPIO_ODR_2;
+const uint32_t Mask_For_All_PCB_Address = PCB1_IN1 | PCB1_IN2 | PCB2_IN1 | PCB2_IN2 | PCB3_IN1 | PCB3_IN2 | PCB4_IN1 | PCB4_IN2;
+	
+//***********Global Variable for Rover ******************//
+volatile char _RX_flag = 0;
+volatile char _RX_dir = 'x';
+volatile char curr_dir = 1;
 
+int autonomous_mode = 0;
+int auto_mode_front_left_sensor_object = 0;
+int auto_mode_front_sensor_object = 0;
+int auto_mode_front_right_sensor_object = 0;
+int auto_mode_right_sensor_object = 0;
+int auto_mode_left_sensor_object = 0;
+int rover_was_moving_right = 0;
+int rover_was_moving_left = 0;
+int distance_counter = 0;
+	
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -127,39 +101,40 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
 
-  // RCC
+  // RCC Enable use of periphals
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN; //enable A pins
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable B pins
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN; //enable C pins
 	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; //enable TIM2
 	
-	
+////**********SETUP for USART ***************************//
 // setup USART 
 	// PC4 TX blue wire
 	// Set mode to alternate function
-	  GPIOC->MODER |= (1<<9);
-	  GPIOC->MODER &= ~(1<<8);
+	GPIOC->MODER |= (1<<9);
+	GPIOC->MODER &= ~(1<<8);
 		
   // PC5 RX green wire
 	// Set mode to alternate function
-		GPIOC->MODER |= (1<<11);
-		GPIOC->MODER &= ~(1<<10);
+	GPIOC->MODER |= (1<<11);
+	GPIOC->MODER &= ~(1<<10);
 		
   //alterante fucntion to AF1 0001
-		GPIOC->AFR[0] &= ~(1U << 23 | 1U << 22 | 1U << 21);
-		GPIOC->AFR[0] |= (1U << 20);
-		GPIOC->AFR[0] &= ~(1U << 19 | 1U << 18 | 1U << 17);
-		GPIOC->AFR[0] |= (1U << 16);
-		
-// initialize USART
-		RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
-		USART3->BRR = HAL_RCC_GetHCLKFreq() / 9600; 
-		USART3->CR1 |= (1<<2 | 1<<3 | 1<<5 );
-		NVIC_EnableIRQ(USART3_4_IRQn);
-		NVIC_SetPriority(USART3_4_IRQn, 1);
-		USART3->CR1 |= (1<<0);
-			
+	GPIOC->AFR[0] &= ~(1U << 23 | 1U << 22 | 1U << 21);
+	GPIOC->AFR[0] |= (1U << 20);
+	GPIOC->AFR[0] &= ~(1U << 19 | 1U << 18 | 1U << 17);
+	GPIOC->AFR[0] |= (1U << 16);
 
+  // initialize USART	
+	RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
+	USART3->BRR = HAL_RCC_GetHCLKFreq() / 9600; 
+	USART3->CR1 |= (1<<2 | 1<<3 | 1<<5 );
+	NVIC_EnableIRQ(USART3_4_IRQn);
+	NVIC_SetPriority(USART3_4_IRQn, 1);
+	USART3->CR1 |= (1<<0);
+////**********END SETUP for USART ***************************//
+
+////**********SETUP for Ultrasonic Sensor 1-5 ***************************//
   // sensor 1
 	// Configure PA4 (trigger)
 		GPIOA->MODER |= (1<<8);
@@ -175,7 +150,7 @@ int main(void)
 	// sensor 5
 	// Configure PC6 (trigger)
 		GPIOC->MODER |= (1<<12); 
-		
+////**********END of SETUP for Ultrasonic Sensor 1-5 ***************************//
 
 ////**********SETUP A pins 0,1 for PWM ***************************//
 	GPIOA->MODER |= GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1 ;//| GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1 ; // Set to Alternate function output mode (bits: 10)
@@ -187,9 +162,6 @@ int main(void)
 	//remove gpio_moder_moder3_0
 	GPIOB->MODER |= GPIO_MODER_MODER2_0 | GPIO_MODER_MODER3_0 | GPIO_MODER_MODER6_0|GPIO_MODER_MODER7_0|GPIO_MODER_MODER8_0|GPIO_MODER_MODER9_0 | GPIO_MODER_MODER12_0| GPIO_MODER_MODER13_0| GPIO_MODER_MODER14_0| GPIO_MODER_MODER15_0; // Set to General pupose output mode (bits: 01)
 	GPIOA->MODER |= 0x1<<4;; // testing
-	//GPIOB->OTYPER |= ; //should be in Output push-pull state
-	//GPIOB->OSPEEDR |= ; //kept at default speed
-  //GPIOB->PUPDR |= ; // should be in No pull-up, pull-down state
 //**********SETUP B pins 2,6-9,12-15  ****************//
 
 //**********SETUP B pins 10,11 for PWM****************//
@@ -198,25 +170,24 @@ int main(void)
 //**********END of SETUP B pins 4,5,10,11 ****************//
 
 /******************SETUP PWM TIMER 2 (PA0,1,PB10,11 channel 1,2,3,4) ***********************/
-	
 	TIM2 -> PSC = (99); 														
 	TIM2 -> ARR = (100); //100*100 = 10,000 desired f = 800Hz		
 	TIM2 -> DIER = 0; //RESET inturrupts to disable on all cases
 
-	TIM2 -> CCMR1 |= (0b00 << 8);		// set channel 2 to output mode
-	TIM2 -> CCMR1 |= (0b00);	     // set channel 1 to output mode
-	TIM2 -> CCMR2 |= (0b00 << 8);		// set channel 4 to output mode
-	TIM2 -> CCMR2 |= (0b00);	     // set channel 3 to output mode 
-	TIM2 -> CCMR1 |= (6 << 4);   // set OC1M to PWM mode 1	
-  TIM2 -> CCMR1 |= (6 << 12);   // set OC2M to PWM mode 1	
-	TIM2 -> CCMR2 |= (6 << 4);   // set OC3M to PWM mode 1	
-	TIM2 -> CCMR2 |= (6 << 12);   // set OC4M to PWM mode 1	
+	TIM2 -> CCMR1 |= (0b00 << 8);	// set channel 2 to output mode
+	TIM2 -> CCMR1 |= (0b00);	    // set channel 1 to output mode
+	TIM2 -> CCMR2 |= (0b00 << 8);	// set channel 4 to output mode
+	TIM2 -> CCMR2 |= (0b00);	    // set channel 3 to output mode 
+	TIM2 -> CCMR1 |= (6 << 4);   	// set OC1M to PWM mode 1	
+  	TIM2 -> CCMR1 |= (6 << 12);   	// set OC2M to PWM mode 1	
+	TIM2 -> CCMR2 |= (6 << 4);   	// set OC3M to PWM mode 1	
+	TIM2 -> CCMR2 |= (6 << 12);   	// set OC4M to PWM mode 1	
 	TIM2 -> CCMR1 |= (1 << 3) | (1 << 11); // enable channel 1 & 2 preload
 	TIM2 -> CCMR2 |= (1 << 3) | (1 << 11); // enable channel 3 & 4 preload
-	TIM2 -> CCER |= (1); // channel 1 output enable 
-	TIM2 -> CCER |= (1 << 4); // channel 2 output enable 
-	TIM2 -> CCER |= (1 << 8); // channel 3 output enable 
-	TIM2 -> CCER |= (1 << 12); // channel 4 output enable 
+	TIM2 -> CCER |= (1); 		// channel 1 output enable 
+	TIM2 -> CCER |= (1 << 4); 	// channel 2 output enable 
+	TIM2 -> CCER |= (1 << 8); 	// channel 3 output enable 
+	TIM2 -> CCER |= (1 << 12); 	// channel 4 output enable 
 	TIM2 -> CCR1 = (35); // Heavy Duty for channel 1
 	TIM2 -> CCR2 = (36); // Heavy Duty for Channel 2
 	TIM2 -> CCR3 = (40); // Heavy Duty for channel 3
@@ -231,7 +202,6 @@ int main(void)
 	HAL_Delay(100);
 	
 	TransmitString("CMD?");
-  /* USER CODE END 2 */
 	
   while (1)
   {
@@ -239,10 +209,10 @@ int main(void)
    		send_pulse('A', 4, 5);
    		send_pulse('A', 8, 9);
   		send_pulse('A', 10, 13);
-		  send_pulse('C', 8, 9);
-			send_pulse('C', 6, 7);
+		send_pulse('C', 8, 9);
+		send_pulse('C', 6, 7);
 		
-			if(autonomous_mode == 1) {
+		if(autonomous_mode == 1) {
 			if (auto_mode_front_left_sensor_object == 0 && auto_mode_front_sensor_object == 0 && auto_mode_front_right_sensor_object == 0) { // no object infront of rover
 				if (rover_was_moving_left == 1) {
 					HAL_Delay(500);
@@ -255,8 +225,7 @@ int main(void)
 				Forward();
 			} 
 			
-		  if (auto_mode_front_left_sensor_object == 1 || auto_mode_front_sensor_object == 1) { // if there is an object infornt of the rover
-				
+		   if (auto_mode_front_left_sensor_object == 1 || auto_mode_front_sensor_object == 1) { // if there is an object infornt of the rover
 				if (auto_mode_right_sensor_object == 0 && rover_was_moving_left == 0 ) { // if there is no object to the right and the rover wasn't moving left
 					Right();
 					rover_was_moving_right = 1;
@@ -267,7 +236,7 @@ int main(void)
 					rover_was_moving_right = 0; 
 				} 
 			}
-		 else if (auto_mode_front_right_sensor_object == 1) { // if there is an object infornt of the rover
+		    else if (auto_mode_front_right_sensor_object == 1) { // if there is an object infornt of the rover
 				if (auto_mode_left_sensor_object == 0 && rover_was_moving_right == 0 ) { // if there is no object to the right and the rover wasn't moving left
 					Left();
 					rover_was_moving_left = 1;
@@ -283,7 +252,10 @@ int main(void)
 		
 }
 
-
+/**
+ * @brief Stops the Rover's movements and sets the current direction to 'x'
+ * 
+ */
 void Stop(){
 	if(autonomous_mode == 0) {
 	curr_dir = 'x';
@@ -291,27 +263,44 @@ void Stop(){
 	RoverMovement_Stop();
 	}
 }
+/**
+ * @brief Moves the rover to the Right and sets the current direction to 'd'
+ * 
+ */
 void Right(){
 	curr_dir = 'd';
 	RoverMovement_Right();
 }
-
+/**
+ * @brief Moves the rover to the Left and sets the current direction to 'a'
+ * 
+ */
 void Left(){
 	curr_dir = 'a';
 	RoverMovement_Left();
 }
-
+/**
+ * @brief Moves the rover Forward and sets the current direction to 'w'
+ * 
+ */
 void Forward(){
 	curr_dir = 'w';
 	RoverMovement_Forward();						
 }
-
+/**
+ * @brief Moves the rover in Reverse and sets the current direction to 's'
+ * 
+ */
 void Back(){
 	curr_dir = 's';
 	RoverMovement_Reverse();
 }
 
-
+/**
+ * @brief Interrupt handler when recieving a string of characters via usart connection. Grabs input and set the direction of the rover. 
+ * And transmit a string via string which direction the rover is going.
+ * 
+ */
 void USART3_4_IRQHandler(void) {
 	if(_RX_flag == 0) {
 		_RX_dir = 0;
@@ -365,7 +354,6 @@ void USART3_4_IRQHandler(void) {
 	}
 }
 
-
 /*
 code for setting up the LEDs not needed because we are using the pins for the sensors
 */
@@ -416,7 +404,11 @@ void setup_LEDs(void) {
 		GPIOC->PUPDR &= ~(1<<18 | 1<<19);
 
 }
-
+/**
+ * @brief Transmitting a character at a time via usart connection
+ * 
+ * @param c 
+ */
 void TransmitChar(char c) {
 	while(1) {
 		if(USART3->ISR & (1<<7)) {
@@ -425,7 +417,11 @@ void TransmitChar(char c) {
 	}
 	USART3->TDR = c; 
 }
-
+/**
+ * @brief Transmitting a string of characters via usart connection
+ * 
+ * @param string 
+ */
 void TransmitString(char* string) {
 	for (int i = 0; string[i] != '\0'; i++) {
 		TransmitChar(string[i]);
@@ -557,27 +553,49 @@ void send_pulse(char pin, int trig, int echo) {
 //	 TransmitString(str);
 		
     pulse_length = 0;			
-	//HAL_Delay(50); // probably change this later.
+	//HAL_Delay(50); // Used for testing  
 	
 }
 
+/**
+ * @brief Sets GPIO pinIN2 high and sets GIO pinIN1 to low 
+ * and changes the direction of the wheel to turn counter-clockwise
+ * 
+ * @param pinIN1 represents PCB IN1
+ * @param pinIN2 represents PCB IN2
+ */
 void MotorDir_Counter_Clockwise(uint32_t pinIN1, uint32_t pinIN2){
 	GPIOB->ODR |= pinIN2;
 	GPIOB->ODR &= ~(pinIN1);
 }
 
+/**
+ * @brief Sets GPIO pinIN2 Low and sets GIO pinIN1 to High 
+ * and changes the direction of the wheel to turn clockwise
+ * 
+ * @param pinIN1 represents PCB IN1
+ * @param pinIN2 represents PCB IN2
+ */
 void MotorDir_Clockwise(uint32_t pinIN1, uint32_t pinIN2){
 	GPIOB->ODR |= pinIN1;
 	GPIOB->ODR &= ~(pinIN2);
 }
-
+/**
+ * @brief Sets PCB 1 and 2 to turn clockwise and PCB 3 and 4 to turn counter-clockwise.
+ * Getting the rover to move in reverse.
+ * 
+ */
 void RoverMovement_Reverse(){
 	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2);
 	MotorDir_Counter_Clockwise(PCB2_IN1, PCB2_IN2);
 	MotorDir_Clockwise(PCB3_IN1, PCB3_IN2);
 	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2);
 }
-
+/**
+ * @brief Sets PCB 1 and 2 to turn counter-clockwise and PCB 3 and 4 to turn clockwise.
+ * Getting the rover to move forward.
+ * 
+ */
 void RoverMovement_Forward(){
 	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2);
 	MotorDir_Clockwise(PCB2_IN1, PCB2_IN2);
@@ -585,6 +603,11 @@ void RoverMovement_Forward(){
 	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2);
 }
 
+/**
+ * @brief Sets PCB 1 and 3 to turn clockwise and PCB 2 and 4 to turn counter-clockwise.
+ * Getting the rover to move Left.
+ * 
+ */
 void RoverMovement_Left(){
 	MotorDir_Clockwise(PCB1_IN1, PCB1_IN2);
 	MotorDir_Counter_Clockwise(PCB2_IN1, PCB2_IN2);
@@ -592,13 +615,22 @@ void RoverMovement_Left(){
 	MotorDir_Counter_Clockwise(PCB4_IN1, PCB4_IN2);
 }
 
+/**
+ * @brief Sets PCB 1 and 3 to turn counter-clockwise and PCB 2 and 4 to turn clockwise.
+ * Getting the rover to move Right.
+ * 
+ */
 void RoverMovement_Right(){
 	MotorDir_Counter_Clockwise(PCB1_IN1, PCB1_IN2);
 	MotorDir_Clockwise(PCB2_IN1, PCB2_IN2);
 	MotorDir_Counter_Clockwise(PCB3_IN1, PCB3_IN2);
 	MotorDir_Clockwise(PCB4_IN1, PCB4_IN2);
 }
-	
+
+/**
+ * @brief Sets all the pins related to the PCB1, 2, 3,and 4 to LOW
+ * 
+ */
 void RoverMovement_Stop(){
 	GPIOB->ODR  &=  ~(Mask_For_All_PCB_Address); //turns off signals to logical lows
 	//HAL_Delay(1); //comment this out later TODO
