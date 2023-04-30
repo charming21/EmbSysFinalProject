@@ -225,23 +225,23 @@ int main(void)
 				Forward();
 			} 
 			
-		   if (auto_mode_front_left_sensor_object == 1 || auto_mode_front_sensor_object == 1) { // if there is an object infornt of the rover
+		   if (auto_mode_front_left_sensor_object == 1 || auto_mode_front_sensor_object == 1) { // if there is an object infornt or front left of the rover
 				if (auto_mode_right_sensor_object == 0 && rover_was_moving_left == 0 ) { // if there is no object to the right and the rover wasn't moving left
 					Right();
 					rover_was_moving_right = 1;
 				}
-				else if (auto_mode_left_sensor_object == 0) { // if there is no object to the left and the rover wasn't moving left
+				else if (auto_mode_left_sensor_object == 0) { // if there is no object to the left of the rover 
 					Left();
 					rover_was_moving_left = 1;
 					rover_was_moving_right = 0; 
 				} 
 			}
-		    else if (auto_mode_front_right_sensor_object == 1) { // if there is an object infornt of the rover
-				if (auto_mode_left_sensor_object == 0 && rover_was_moving_right == 0 ) { // if there is no object to the right and the rover wasn't moving left
+		    else if (auto_mode_front_right_sensor_object == 1) { // if there is an object front right of the rover
+				if (auto_mode_left_sensor_object == 0 && rover_was_moving_right == 0 ) {  // if there is no object to the left and the rover wasn't moving right
 					Left();
 					rover_was_moving_left = 1;
 				}
-				else if (auto_mode_right_sensor_object == 0) { // if there is no object to the left and the rover wasn't moving left
+				else if (auto_mode_right_sensor_object == 0) {  // if there is no object to the right of the rover 
 					Right();
 					rover_was_moving_right = 1;
 					rover_was_moving_left = 0; 
