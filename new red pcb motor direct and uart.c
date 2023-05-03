@@ -1,8 +1,8 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
+  * @file           : new red pcb motor direct and uart.c
+  * @brief          : (Testing) Combines motor direction functions and UART control to achieve initial motor control for testing on new dual motor driver PCBs
   ******************************************************************************
   * @attention
   *
