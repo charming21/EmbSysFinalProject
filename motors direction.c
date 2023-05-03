@@ -1,8 +1,10 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
+  * @file           : motor direction.c
+  * @brief          : (Obsolete) Motor direction (CC/CCW) definitions for each direction of rover according to Mecanum movement, and some quick direction test functions 
+		      (contains bugs with GPIO definitions) 
+
   ******************************************************************************
   * @attention
   *
