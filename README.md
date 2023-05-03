@@ -2,10 +2,13 @@
 Hello Everyone, thank you for viewing our Spring 2023 final project for Embedded Systems at the University of Utah. Our goal is to design a rover to move from one point to another point, while avoiding obstacles. Using at least 3 of the techniques used in labs(i.e. GPIO,interrupts, timers, UART, I2C, Analog, PID). The purpose of our project is to use our knowledge gained throughtout the semester and implement those skills to build our rover Scorpion.
 
 Team Name: LavenderBlush
+
 Team Members: 
+
     Brittney Morales
     Saoud Aldowaish
     Zander Bagley
+
 Rover Name: Scorpion 
 
 Project Details: 
@@ -60,6 +63,9 @@ Project Details:
         - A female USB to mini B USB 
             - to connect the power bank to the STM32F0
 
+        - 3D printed connector between server and mechanum wheel.
+            - you will need a total of 4, we recommend to print more to make sure you get a secure fitting.
+
     Scorpion has 2 modes set through USART:
         - Mode 1: Scorpion will move in the direction the user dictates via USART directions are Forward(W), Back(S), Right(D), Left(A) and Stop(x). Automatically stops when it senses an object in it's path.  
 
@@ -68,7 +74,9 @@ Project Details:
     Instruction on how to setup/build your own Scorpion (rover): 
         - Steps:
             - Step 1: Make sure you have all your components with you.
-            - Step 2: Following the wiring Diagram called schematic of Scorpion file, you should be able to wire all your components together. 
+                -Step 1.a: attach servo to chassis with given servo screws.
+                -Step 1.b: attach mechanum wheels to servos with 3d printed attachments and use super glue to add to secure the connection.
+            - Step 2: Following the wiring Diagram called schematic of Scorpion file, you should be able to wire all your components together. (You can use just wire directly, but we recommend the use of breadboards to make multiple connections.)
             - Step 3: Flash the Scorpian file to your STM32 board.
             - Step 4: Connect the battery pack to your circuit system.
             - Step 5: Connect the power bank to your STM32 board using the usb to mini B cable.
@@ -80,14 +88,15 @@ Project Details:
                 - Step 8.c: if you know which com your HC-05 is connected to add it to the Serial Line. If not, open up Device manager , look for 'Ports (COM & LPT). click on the drop down, and try the com's listed there. 
             - Step 9: Press the reset button on your STM32 board, and the message : "cmd?" should appear in your putty terminal.
 
+        - We have images on how the rover should like.
+
     Final Result : 
         - Now going through this steps you should be able to type the letter 'w' for forward, 's' for reverse, 'a' for left, 'd' for right, 'x' for stop, and 'e' for autonomous mode. if you are in the first mode, it will go in that said direction til it is obstructed. It will inform the user which side the blockage is on and the user will then choose which way to go.
         - In it's Autonomous mode (press 'e' in the putty terminal to put into mode 2), Scorpion moves in forward direction while avoiding objects in it's path. It will change direction's itself based on the scenario. 
 
     Functionality: 
         - Overall functionality, when built correctly and wired correctly Scorpion will avoid obsticles in it's path and move forward with ease. 
-
-
     
-
+    Notes: 
+        - Attached we have an image of which wheel is which and which timer channel is connected to each wheel for power. This image is called "Wheel Number and Channel"
 
