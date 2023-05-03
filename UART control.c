@@ -1,8 +1,8 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
+  * @file           : UART_control.c
+  * @brief          : UART bluetooth input to robot, able to toggle Forward, Left, Right, Back, and Stop mode with w,a,d,s,x laptop keystrokes
   ******************************************************************************
   * @attention
   *
