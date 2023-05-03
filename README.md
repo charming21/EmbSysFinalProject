@@ -111,13 +111,13 @@ Git File Description:
 	========= Motors ============
 	PWM Setup.c - (Testing) Initial setup and testing of PWM functionality using TIM2 and TIM3
 
-	working motors direction.c - (Testing) Motor direction (CC/CCW) definitions for each direction of rover according to Mecanum movement, and some quick direction 				     test functions
+	working motors direction.c - (Testing) Motor direction (CC/CCW) definitions for each direction of rover according to Mecanum movement, and some quick direction test functions
 
-	new red pcb motor direct and uart.c - (Testing) Combines motor direction functions and UART control to achieve initial motor control for testing on new dual 						   motor driver PCBs
+	new red pcb motor direct and uart.c - (Testing) Combines motor direction functions and UART control to achieve initial motor control for testing on new dual motor driver PCBs
 
-	motor direction.c - (Obsolete) Motor direction (CC/CCW) definitions for each direction of rover according to Mecanum movement, and some quick direction test 				  functions (contains bugs with GPIO definitions) 
+	motor direction.c - (Obsolete) Motor direction (CC/CCW) definitions for each direction of rover according to Mecanum movement, and some quick direction test functions (contains bugs with GPIO definitions) 
 
-	old blue pcb motor direction.c - (Obsolete) Code from early in the project using TIM3 and GPIO pins meant to connect to motor driver PCBs we found to be 					  inadequate
+	old blue pcb motor direction.c - (Obsolete) Code from early in the project using TIM3 and GPIO pins meant to connect to motor driver PCBs we found to be inadequate
 
 	========= Sensors ============
 	ultrasonic testing.c - (Testing) Initial testing and configuration of ultrasonic sensors (used to trim trigger and echo detection and timing) 
@@ -125,5 +125,5 @@ Git File Description:
 	========= Combined Testing ============
 	working version without sensors.c - (Testing) Combines UART control, Motor driving, and PWM tuning to adjust for our motors having differing torque 
 
-	working version without autonomous.c - (Testing) Combines UART control, Motor driving, PWM tuning, and Ultrasonic sensing to achieve manual movement with 						 automatic topping if an object is detected in the direction of movement 
+	working version without autonomous.c - (Testing) Combines UART control, Motor driving, PWM tuning, and Ultrasonic sensing to achieve manual movement with automatic topping if an object is detected in the direction of movement 
 
