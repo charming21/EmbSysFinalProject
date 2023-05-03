@@ -1,8 +1,8 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
+  * @file           : PWM setup.c
+  * @brief          : Initial setup and testing of PWM functionality using TIM2 and TIM3
   ******************************************************************************
   * @attention
   *
