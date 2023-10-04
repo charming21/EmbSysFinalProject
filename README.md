@@ -3,6 +3,8 @@ Hello Everyone, thank you for viewing our Spring 2023 final project for Embedded
 
 Team Name: LavenderBlush
 
+Video of our Rover on the move: [Click here for link to rover video](https://photos.app.goo.gl/rmh3rZcpHbNsJV3u7)
+
 Team Members: 
 
     Brittney Morales
